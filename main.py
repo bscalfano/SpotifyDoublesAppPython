@@ -201,4 +201,4 @@ song_names = get_song_names_by_song_array(songs)
 duplicate_songs = find_duplicate_names(songs)
 
 for song in duplicate_songs:
-    print(song.name, " - ", song.artist_name)
+    print(song.name, "-", song.artist_name)
