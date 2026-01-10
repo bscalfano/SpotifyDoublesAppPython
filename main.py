@@ -9,22 +9,39 @@ from requests import post, get
 #                  CLASSES                   #
 ##############################################
 class Song:
-    def __init__(self, song_json):
-        self.id = song_json['id']
-        self.name = song_json['name']
-        self.shortened_name = shorten_song_name(song_json['name'])
-        self.album_name = song_json['album']['name']
-        self.album_id = song_json['album']['id']
-        self.album_type = song_json['album']['album_type']
-        self.album_total_tracks = song_json['album']['total_tracks']
-        self.album_image = song_json['album']['images'][0]['url']
-        self.album_release_date = song_json['album']['release_date']
-        self.artist_name = song_json['artists'][0]['name']
-        self.artist_id = song_json['artists'][0]['id']
-        self.disc_number = song_json['disc_number']
-        self.duration_ms = song_json['duration_ms']
-        self.explicit = song_json['explicit']
-        self.popularity = song_json['popularity']
+    def __init__(self, song_json=None):
+        if song_json is not None:
+            self.id = song_json['id']
+            self.name = song_json['name']
+            self.shortened_name = shorten_song_name(song_json['name'])
+            self.album_name = song_json['album']['name']
+            self.album_id = song_json['album']['id']
+            self.album_type = song_json['album']['album_type']
+            self.album_total_tracks = song_json['album']['total_tracks']
+            self.album_image = song_json['album']['images'][0]['url']
+            self.album_release_date = song_json['album']['release_date']
+            self.artist_name = song_json['artists'][0]['name']
+            self.artist_id = song_json['artists'][0]['id']
+            self.disc_number = song_json['disc_number']
+            self.duration_ms = song_json['duration_ms']
+            self.explicit = song_json['explicit']
+            self.popularity = song_json['popularity']
+        else:
+            self.id = ""
+            self.name = ""
+            self.shortened_name = ""
+            self.album_name = ""
+            self.album_id = ""
+            self.album_type = ""
+            self.album_total_tracks = ""
+            self.album_image = ""
+            self.album_release_date = ""
+            self.artist_name = ""
+            self.artist_id = ""
+            self.disc_number = ""
+            self.duration_ms = ""
+            self.explicit = ""
+            self.popularity = ""
 
 
         
@@ -138,6 +155,7 @@ def shorten_song_names(song_names):
 def find_duplicate_names(songs):
     shortened_names_and_ids = []
     duplicate_songs = []
+    # TODO: rewrite this. Get all songs first, sort by shortened name, and then step through the ordered list
     for song in songs:
         for shortened_name_and_id in shortened_names_and_ids:
             if shortened_name_and_id[0] == song.shortened_name:
@@ -148,6 +166,30 @@ def find_duplicate_names(songs):
                     duplicate_songs.append(song)
         shortened_names_and_ids.append((song.shortened_name, song.id))
     return duplicate_songs
+
+def find_duplicate_names_v2(songs):
+    duplicate_songs = []
+    # TODO: rewrite this. Get all songs first, sort by shortened name, and then step through the ordered list
+    sorted_songs = sorted(songs, key=lambda x: x.shortened_name)
+    # To ensure sorting is working
+    # i = 0
+    # while i < 100:
+    #     print(sorted_songs[i].shortened_name)
+    #     i = i + 1
+    prev_match = False
+    prev_song = Song()
+    for song in sorted_songs:
+        if song.shortened_name == prev_song.shortened_name:
+            if not prev_match:
+                duplicate_songs.append(prev_song)
+            duplicate_songs.append(song)
+            prev_match = True
+        else:
+            prev_match = False
+        prev_song = song
+
+    return duplicate_songs
+
 
 def get_song_by_id(id):
     url = f"https://api.spotify.com/v1/tracks/{id}"
@@ -198,7 +240,7 @@ song_names = get_song_names_by_song_array(songs)
 # for song in song_list:
 #     song_array.append(Song(song['track']))
 
-duplicate_songs = find_duplicate_names(songs)
+duplicate_songs = find_duplicate_names_v2(songs)
 
 for song in duplicate_songs:
     print(song.name, "-", song.artist_name)
